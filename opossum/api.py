@@ -4,7 +4,7 @@ import os
 
 from jsonschema import validate, ValidationError
 
-from opossum.exc import APIBadRequest, APIForbidden
+from opossum.exc import APIBadRequest, APIForbidden, SchemaNotFound
 from opossum import g
 
 
@@ -18,8 +18,11 @@ def response(message, status_code):
 
 
 def validate_json(schema_name):
-    with open(os.path.join('schemas', f'{schema_name}.json', 'r')) as f_obj:
-        schema_request = json.load(f_obj)
+    try:
+        with open(os.path.join('schemas', f'{schema_name}.json', 'r')) as f_obj:
+            schema_request = json.load(f_obj)
+    except IOError:
+        raise SchemaNotFound(f'Could not load a schema for {schema_name}')
 
     try:
         request_data = json.loads(g.event['body'])
@@ -36,28 +39,29 @@ def validate_json(schema_name):
             'One or more required fields are missing or invalid')
 
 
-def handler(lambda_handler):
+def handler(lambda_handler, json_validation=None):
     """Wraps around Lambda handler functions for API Gateway events.
 
     :param function lambda_handler: A Lambda handler function
+    :param str json_validation: (Optional) The name of a schema file located in
+        a ``schemas`` directory to validate a request's JSON payload against.
 
     :return: Wrapped function
     :rtype: function
     """
     def wrapper(*args, **kwargs):
-        logging.debug('Decorator invoked!')
-        logging.debug(f'Args: {args}')
-        logging.debug(f'Keyword Args: {kwargs}')
-
         g.event = args[0]
         g.context = args[1]
+
+        if json_validation:
+            validate_json(json_validation)
 
         try:
             message, code = lambda_handler(*args, **kwargs)
         except APIBadRequest as err:
-            return response({'error': str(err)}, 400)
+            return response({'message': str(err)}, 400)
         except APIForbidden as err:
-            return response({'error': str(err)}, 403)
+            return response({'message': str(err)}, 403)
 
         return response(message, code)
 

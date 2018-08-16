@@ -15,3 +15,7 @@ class APIBadRequest(APIException):
 
 class APIForbidden(APIException):
     pass
+
+
+class SchemaNotFound(OpossumException):
+    pass
