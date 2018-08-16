@@ -23,7 +23,7 @@ def validate_json(schema_name):
     try:
         schema_path = os.path.join(
             _LAMBDA_ROOT, 'schemas', f'{schema_name}.json')
-        
+
         with open(schema_path, 'r') as f_obj:
             schema_request = json.load(f_obj)
     except IOError:
@@ -60,13 +60,15 @@ def handler(lambda_handler=None, json_validation=None):
             g.event = args[0]
             g.context = args[1]
 
-            if json_validation:
-                validate_json(json_validation)
-
             try:
+                if json_validation:
+                    validate_json(json_validation)
+
                 message, code = lambda_handler(*args, **kwargs)
+
             except APIBadRequest as err:
                 return response({'message': str(err)}, 400)
+            
             except APIForbidden as err:
                 return response({'message': str(err)}, 403)
 
