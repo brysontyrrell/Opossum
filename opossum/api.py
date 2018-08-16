@@ -49,8 +49,8 @@ def handler(lambda_handler):
         logging.debug(f'Args: {args}')
         logging.debug(f'Keyword Args: {kwargs}')
 
-        globals.event = args[0]
-        globals.context = args[1]
+        g.event = args[0]
+        g.context = args[1]
 
         try:
             message, code = lambda_handler(*args, **kwargs)
