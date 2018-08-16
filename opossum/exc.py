@@ -1,6 +1,3 @@
-__all__ = ['APIException', 'APIBadRequest', 'APIForbidden']
-
-
 class OpossumException(Exception):
     pass
 
