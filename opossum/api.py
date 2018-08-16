@@ -39,7 +39,7 @@ def validate_json(schema_name):
             'One or more required fields are missing or invalid')
 
 
-def handler(lambda_handler, json_validation=None):
+def handler(lambda_handler=None, json_validation=None):
     """Wraps around Lambda handler functions for API Gateway events.
 
     :param function lambda_handler: A Lambda handler function
@@ -49,23 +49,27 @@ def handler(lambda_handler, json_validation=None):
     :return: Wrapped function
     :rtype: function
     """
-    def wrapper(*args, **kwargs):
-        g.event = args[0]
-        g.context = args[1]
+    def decorator(lambda_handler):
+        
+        def wrapper(*args, **kwargs):
+            g.event = args[0]
+            g.context = args[1]
 
-        if json_validation:
-            validate_json(json_validation)
+            if json_validation:
+                validate_json(json_validation)
 
-        try:
-            message, code = lambda_handler(*args, **kwargs)
-        except APIBadRequest as err:
-            return response({'message': str(err)}, 400)
-        except APIForbidden as err:
-            return response({'message': str(err)}, 403)
+            try:
+                message, code = lambda_handler(*args, **kwargs)
+            except APIBadRequest as err:
+                return response({'message': str(err)}, 400)
+            except APIForbidden as err:
+                return response({'message': str(err)}, 403)
 
-        return response(message, code)
+            return response(message, code)
 
-    return wrapper
+        return wrapper
+
+    return decorator(lambda_handler) if lambda_handler else decorator
 
 
 # def api_opts(func=None, validate=None):
