@@ -7,7 +7,7 @@ from jsonschema import validate, ValidationError
 from opossum.exc import APIBadRequest, APIForbidden, SchemaNotFound
 from opossum import g
 
-_LAMBDA_DIRECTORY = os.path.dirname(os.path.realpath(__file__))
+_LAMBDA_ROOT = os.getenv('LAMBDA_TASK_ROOT')
 
 
 def response(message, status_code):
@@ -21,8 +21,10 @@ def response(message, status_code):
 
 def validate_json(schema_name):
     try:
-        with open(os.path.join(_LAMBDA_DIRECTORY, 'schemas',
-                               f'{schema_name}.json', 'r')) as f_obj:
+        schema_path = os.path.join(
+            _LAMBDA_ROOT, 'schemas', f'{schema_name}.json')
+        
+        with open(schema_path, 'r') as f_obj:
             schema_request = json.load(f_obj)
     except IOError:
         raise SchemaNotFound(f'Could not load a schema for {schema_name}')
