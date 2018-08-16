@@ -4,7 +4,7 @@ from setuptools import find_packages, setup
 regex = re.compile(r'^__\w+__\s*=.*$')
 
 about = dict()
-with open('possum', 'r') as f:
+with open('opossum/__init__.py', 'r') as f:
     dunders = list()
     for l in f.readlines():
         if regex.match(l):
