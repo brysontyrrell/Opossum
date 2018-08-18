@@ -4,7 +4,7 @@ import os
 
 from jsonschema import validate, ValidationError
 
-from opossum.exc import APIBadRequest, APIForbidden, SchemaNotFound
+from opossum.exc import *
 from opossum import g
 
 _LAMBDA_ROOT = os.getenv('LAMBDA_TASK_ROOT')
@@ -66,29 +66,11 @@ def handler(lambda_handler=None, json_validation=None):
 
                 message, code = lambda_handler(*args, **kwargs)
 
-            except APIBadRequest as err:
-                return response({'message': str(err)}, 400)
-            
-            except APIForbidden as err:
-                return response({'message': str(err)}, 403)
+            except APIException as err:
+                return response({'message': str(err)}, err.status_code)
 
             return response(message, code)
 
         return wrapper
 
     return decorator(lambda_handler) if lambda_handler else decorator
-
-
-# def api_opts(func=None, validate=None):
-#     def decorator(func):
-#         if validate:
-#             validate_json(validate)
-#
-#         def inner(*args, **kwargs):
-#             return ('{colour_open}<b>{message}</b>{colour_close}'
-#                     .format(colour_open=colour_open,
-#                             colour_close=colour_close,
-#                             message=func(*args, **kwargs)))
-#         return inner
-#
-#     return decorator(func) if func is not None else decorator
