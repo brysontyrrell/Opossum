@@ -11,6 +11,9 @@ _LAMBDA_ROOT = os.getenv('LAMBDA_TASK_ROOT')
 
 
 def response(message, status_code):
+    if isinstance(message, str):
+        message = {'message': message}
+
     return {
         'isBase64Encoded': False,
         'statusCode': status_code,
